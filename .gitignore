@@ -3,6 +3,7 @@
 config.py
 chrome-profile/
 chromedriver/
+chat_names.txt
 
 # Ignore workspace settings
 whatsup.code-workspace

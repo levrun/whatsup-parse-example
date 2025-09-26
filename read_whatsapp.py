@@ -50,17 +50,25 @@ except Exception as e:
 
 
 
-# Now search for chat titles
-chat_elements = driver.find_elements(By.XPATH, '//div[@id="pane-side"]//span[@title]')
-print(f"Found {len(chat_elements)} chat elements.")
+
+# Only select chat name spans, not message preview spans
+chat_name_elements = driver.find_elements(By.XPATH, '//div[@id="pane-side"]//span[@title and not(@aria-label)]')
+
+print(f"Found {len(chat_name_elements)} chat elements.")
+# Save all chat names to chat_names.txt
+with open('c:/dev/ai/whatsup/chat_names.txt', 'w', encoding='utf-8') as f:
+    for chat in chat_name_elements:
+        chat_title = chat.get_attribute('title')
+        f.write(chat_title + '\n')
+
 target_chat = None
-for chat in chat_elements:
+for chat in chat_name_elements:
     if chat.get_attribute('title') == chat_name:
         target_chat = chat
         break
 
 if target_chat:
-    print("Opening chat: CRT Level 2-5")
+    print(f"Opening chat: {chat_name}")
     target_chat.click()
     time.sleep(5)  # Wait for messages to load
     # Get all visible messages in the chat (try more flexible selector)
@@ -99,7 +107,7 @@ if target_chat:
             driver.execute_script("arguments[0].scrollTop = arguments[0].scrollTop - 1000;", chat_area)
             time.sleep(1)
 
-    # Re-fetch message containers after scrolling
+    # After scrolling, fetch and process message containers
     message_containers = driver.find_elements(By.XPATH, '//div[contains(@class, "message-in") or contains(@class, "message-out")]')
 
     with open('c:/dev/ai/whatsup/messages.txt', 'w', encoding='utf-8') as f:
