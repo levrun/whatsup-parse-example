@@ -1,0 +1,11 @@
+# Ignore config and Chrome profile folders
+
+config.py
+chrome-profile/
+chromedriver/
+
+# Ignore workspace settings
+whatsup.code-workspace
+
+# Ignore exported messages
+messages.txt
