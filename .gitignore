@@ -10,3 +10,5 @@ whatsup.code-workspace
 
 # Ignore exported messages
 messages.txt
+# Ignore Python bytecode cache
+__pycache__/
