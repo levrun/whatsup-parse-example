@@ -84,61 +84,76 @@ if target_chat:
         except Exception:
             print("Could not find chat area for scrolling. Will print visible messages only.")
 
-    if chat_area:
-        for _ in range(5):
-            driver.execute_script("arguments[0].scrollTop = 0;", chat_area)
-            time.sleep(2)
 
-    # Extract sender and message text/emoji from each container
-    print(f"Found {len(message_containers)} message containers in CRT Level 2-5:")
-    # Save messages to a txt file
-    # Scroll up to load all messages
+
+    # Improved scrolling: use JavaScript to scroll the correct chat area
+    # New approach: click chat area, send repeated PAGE_UP keys
+    from selenium.webdriver.common.action_chains import ActionChains
     chat_area = None
-    try:
-        chat_area = driver.find_element(By.XPATH, '//div[@role="region" and @tabindex="-1"]')
-    except Exception:
+    possible_selectors = [
+        '//div[@role="region" and @tabindex="-1"]',
+        '//div[contains(@class, "_ak8h")]',
+        '//div[contains(@class, "_amk6")]',
+        '//div[contains(@class, "_aigw")]',
+        '//div[@data-testid="conversation-panel-messages"]',
+    ]
+    for selector in possible_selectors:
         try:
-            chat_area = driver.find_element(By.XPATH, '//div[contains(@class, "_ak8h")]')
+            chat_area = driver.find_element(By.XPATH, selector)
+            if chat_area:
+                break
         except Exception:
-            print("Could not find chat area for scrolling. Will print visible messages only.")
+            continue
+    if not chat_area:
+        print("Could not find a chat area for mouse wheel. Exiting.")
+        driver.quit()
+        exit()
+    print("Found chat area for mouse wheel scrolling.")
 
-    if chat_area:
-        for _ in range(30):  # Scroll up 30 times to load more messages
-            driver.execute_script("arguments[0].scrollTop = arguments[0].scrollTop - 1000;", chat_area)
-            time.sleep(1)
+    # Manual scroll mode: prompt user to scroll up in the chat, then press Enter to continue
+    print("\nPlease manually scroll up in the WhatsApp chat to load as many messages as you want.")
+    input("When you are done scrolling, press Enter here to extract messages...")
 
     # After scrolling, fetch and process message containers
     message_containers = driver.find_elements(By.XPATH, '//div[contains(@class, "message-in") or contains(@class, "message-out")]')
 
+    # Collect all messages, then write only the latest 50
+    messages = []
+    for container in message_containers:
+        # Sender name
+        name_spans = container.find_elements(By.XPATH, './/span[contains(@class, "_ahxy")]')
+        sender = name_spans[0].text if name_spans else None
+        msg_block = ""
+        if sender:
+            msg_block += f"\n--- {sender} ---\n"
+        # Message text and emoji
+        message_spans = container.find_elements(By.XPATH, './/span[contains(@class, "_ao3e") and contains(@class, "selectable-text")]')
+        for msg in message_spans:
+            text = msg.text
+            emojis = msg.find_elements(By.TAG_NAME, 'img')
+            emoji_alts = [e.get_attribute('alt') for e in emojis if e.get_attribute('alt')]
+            # Find date and time from data-pre-plain-text attribute in parent div
+            parent_div = msg.find_element(By.XPATH, './ancestor::div[contains(@class, "copyable-text")]')
+            pre_plain = parent_div.get_attribute('data-pre-plain-text') if parent_div else ''
+            # Format: [HH:MM, YYYY-MM-DD] sender: 
+            msg_time = ''
+            msg_date = ''
+            if pre_plain:
+                import re
+                match = re.match(r'\[(\d{2}:\d{2}), (\d{4}-\d{2}-\d{2})\]', pre_plain)
+                if match:
+                    msg_time = match.group(1)
+                    msg_date = match.group(2)
+            if text:
+                msg_block += f"[{msg_date} {msg_time}] {text}\n"
+            if emoji_alts:
+                msg_block += 'Emojis: ' + ' '.join(emoji_alts) + '\n'
+        if msg_block:
+            messages.append(msg_block)
+    # Write only the last 50 messages
     with open('c:/dev/ai/whatsup/messages.txt', 'w', encoding='utf-8') as f:
-        for container in message_containers:
-            # Sender name
-            name_spans = container.find_elements(By.XPATH, './/span[contains(@class, "_ahxy")]')
-            sender = name_spans[0].text if name_spans else None
-            if sender:
-                f.write(f"\n--- {sender} ---\n")
-            # Message text and emoji
-            message_spans = container.find_elements(By.XPATH, './/span[contains(@class, "_ao3e") and contains(@class, "selectable-text")]')
-            for msg in message_spans:
-                text = msg.text
-                emojis = msg.find_elements(By.TAG_NAME, 'img')
-                emoji_alts = [e.get_attribute('alt') for e in emojis if e.get_attribute('alt')]
-                # Find date and time from data-pre-plain-text attribute in parent div
-                parent_div = msg.find_element(By.XPATH, './ancestor::div[contains(@class, "copyable-text")]')
-                pre_plain = parent_div.get_attribute('data-pre-plain-text') if parent_div else ''
-                # Format: [HH:MM, YYYY-MM-DD] sender: 
-                msg_time = ''
-                msg_date = ''
-                if pre_plain:
-                    import re
-                    match = re.match(r'\[(\d{2}:\d{2}), (\d{4}-\d{2}-\d{2})\]', pre_plain)
-                    if match:
-                        msg_time = match.group(1)
-                        msg_date = match.group(2)
-                if text:
-                    f.write(f"[{msg_date} {msg_time}] {text}\n")
-                if emoji_alts:
-                    f.write('Emojis: ' + ' '.join(emoji_alts) + '\n')
+        for msg in messages[-50:]:
+            f.write(msg)
     print('Messages saved to messages.txt')
 else:
     print("Chat 'CRT Level 2-5' not found.")
