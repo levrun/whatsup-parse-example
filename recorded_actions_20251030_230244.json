@@ -1,0 +1,44 @@
+[
+  {
+    "type": "click",
+    "timestamp": "2025-10-30T23:02:27.473296",
+    "position": {
+      "x": 737,
+      "y": 850
+    },
+    "element_info": {
+      "control_type": "ListItem",
+      "name": "\ud83e\udd8b\ud83e\udd84\ud83d\udc1dMariam\ud83e\udd8b\ud83d\udc1b\ud83c\udf3b\ud83e\udda2\ud83e\udeb6\ud83d\udd4a: I think it would be super fun if we at some point had a CRT gala/ award night where we (read:Phil) rents out the Orpheum Theatre for a night and we all dress up hella fancy in ball gowns and tuxedos (the orpheum is so decadent \ud83d\ude0d). We can pre-vote for winners in different categories (most deleted posts, most invisible, most attention seeking etc) and award each winner and they have to do an impromptu shadow\u00a0speech\u00a0\ud83d\ude0f\ud83d\ude02, Edited, \u200e10\u200e:\u200e42\u200e \u200ePM",
+      "automation_id": "BubbleListItem",
+      "class_name": "ListViewItem"
+    }
+  },
+  {
+    "type": "click",
+    "timestamp": "2025-10-30T23:02:28.688599",
+    "position": {
+      "x": 240,
+      "y": 246
+    },
+    "element_info": {
+      "control_type": "ListItem",
+      "name": "CRT Level 2-5 \ud83e\udd8b\ud83e\udd84\ud83d\udc1dMariam\ud83e\udd8b\ud83d\udc1b\ud83c\udf3b\ud83e\udda2\ud83e\udeb6\ud83d\udd4a I think it would be super fun if we at some point had a CRT gala/ award night where we (read:Phil) rents out the Orpheum Theatre for a night and we all dress up hella fancy in ball gowns and tuxedos (the orpheum is so decadent \ud83d\ude0d). We can pre-vote for winners in different categories (most deleted posts, most invisible, most attention seeking etc) and award each winner and they have to do an impromptu shadow\u00a0speech\u00a0\ud83d\ude0f\ud83d\ude02",
+      "automation_id": "",
+      "class_name": ""
+    }
+  },
+  {
+    "type": "click",
+    "timestamp": "2025-10-30T23:02:29.932736",
+    "position": {
+      "x": 736,
+      "y": 818
+    },
+    "element_info": {
+      "control_type": "ListItem",
+      "name": "\ud83e\udd8b\ud83e\udd84\ud83d\udc1dMariam\ud83e\udd8b\ud83d\udc1b\ud83c\udf3b\ud83e\udda2\ud83e\udeb6\ud83d\udd4a: I think it would be super fun if we at some point had a CRT gala/ award night where we (read:Phil) rents out the Orpheum Theatre for a night and we all dress up hella fancy in ball gowns and tuxedos (the orpheum is so decadent \ud83d\ude0d). We can pre-vote for winners in different categories (most deleted posts, most invisible, most attention seeking etc) and award each winner and they have to do an impromptu shadow\u00a0speech\u00a0\ud83d\ude0f\ud83d\ude02, Edited, \u200e10\u200e:\u200e42\u200e \u200ePM",
+      "automation_id": "BubbleListItem",
+      "class_name": "ListViewItem"
+    }
+  }
+]
