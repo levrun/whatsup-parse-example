@@ -95,9 +95,32 @@ python -c "from pywinauto import inspect; inspect.main()"
 4. **Review & customize**: Edit the generated script for your needs
 5. **Test automation**: Run your generated script
 
+### Recording History & Tracking:
+The recorder now maintains a history of all your recording sessions:
+
+```powershell
+# View your last recording session
+python last_recording.py
+
+# View recent recording history
+python last_recording.py --history
+
+# Or use the recorder menu
+python whatsapp_recorder.py
+# Then choose option 3 (View last recording) or 4 (View recording history)
+```
+
+**History features:**
+- 📝 **Session tracking**: Date, duration, action count for each recording
+- 🎯 **Action summaries**: Preview of what actions were recorded
+- 📁 **File tracking**: Links to generated script and data files
+- 📊 **Quick access**: View last recording without opening the full recorder
+- 🗂️ **Persistent storage**: History saved in `recording_history.json`
+
 The recorder will create files like:
 - `recorded_whatsapp_script_YYYYMMDD_HHMMSS.py` - Executable automation script
 - `recorded_actions_YYYYMMDD_HHMMSS.json` - Raw recording data for debugging
+- `recording_history.json` - History of all recording sessions
 
 ## How to Run Pywinauto
 

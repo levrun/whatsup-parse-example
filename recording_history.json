@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2025-11-04 23:17:13",
+    "end_time": "2025-11-04 23:17:26",
+    "duration": "0:00:13",
+    "action_count": 2,
+    "script_file": "recorded_whatsapp_script_20251104_231713.py",
+    "data_file": "recorded_actions_20251104_231713.json",
+    "actions_summary": [
+      "Click on: WhatsApp",
+      "Click on: It’s in the CRT cuddle puddle chat. You can find t"
+    ]
+  }
+]
