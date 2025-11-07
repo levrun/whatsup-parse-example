@@ -1,0 +1,32 @@
+[
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:23.006976",
+    "key": "up"
+  },
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:23.176842",
+    "key": "up"
+  },
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:23.742481",
+    "key": "up"
+  },
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:23.895942",
+    "key": "up"
+  },
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:24.426915",
+    "key": "up"
+  },
+  {
+    "type": "keypress",
+    "timestamp": "2025-11-06T23:23:24.569098",
+    "key": "up"
+  }
+]

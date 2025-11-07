@@ -7,6 +7,7 @@ This script helps you record interactions with WhatsApp and generate automation 
 import time
 import json
 import os
+import pyperclip
 from datetime import datetime
 from pywinauto.application import Application
 from pywinauto import Desktop
@@ -19,6 +20,168 @@ class WhatsAppRecorder:
         self.app = None
         self.recording = False
         self.history_file = "recording_history.json"
+        self.current_message = ""
+        self.captured_text = []
+        self.selected_messages = []
+        
+    def detect_selected_message(self):
+        """Detect and capture selected message content."""
+        if not self.app:
+            print("❌ Not connected to WhatsApp")
+            return None
+        
+        try:
+            main_win = self.app.WhatsApp
+            
+            # Method 1: Try to get selected text from clipboard
+            print("📋 Attempting to copy selected text...")
+            
+            # Clear clipboard first
+            pyperclip.copy("")
+            time.sleep(0.1)
+            
+            # Send Ctrl+C to copy selected text
+            main_win.type_keys("^c")
+            time.sleep(0.3)  # Wait longer for clipboard
+            
+            selected_text = pyperclip.paste()
+            print(f"📋 Clipboard content: '{selected_text[:50]}...'")
+            
+            if selected_text and selected_text.strip() and len(selected_text.strip()) > 3:
+                # Clean up the text and check if it's a message
+                clean_text = selected_text.strip()
+                
+                # Check if we already have this message
+                existing_texts = [item['text'] for item in self.selected_messages]
+                if clean_text not in existing_texts:
+                    message_info = {
+                        'text': clean_text,
+                        'timestamp': datetime.now().isoformat(),
+                        'method': 'clipboard'
+                    }
+                    self.selected_messages.append(message_info)
+                    print(f"✅ Captured selected message: {clean_text[:80]}...")
+                    return message_info
+                else:
+                    print("⚠️  Message already captured")
+                    return None
+            else:
+                print("❌ No meaningful text found in clipboard")
+                
+        except Exception as e:
+            print(f"❌ Error in clipboard method: {e}")
+        
+        print("ℹ️  Tip: Make sure to select text in WhatsApp before pressing F1")
+        return None
+    
+    def save_selected_messages(self):
+        """Save selected messages to a file."""
+        if not self.selected_messages:
+            return None
+        
+        timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
+        selected_filename = f"selected_messages_{timestamp}.txt"
+        
+        try:
+            with open(selected_filename, 'w', encoding='utf-8') as f:
+                f.write("WhatsApp Selected Messages\n")
+                f.write("=" * 30 + "\n")
+                f.write(f"Recorded on: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Total selected messages: {len(self.selected_messages)}\n")
+                f.write("=" * 30 + "\n\n")
+                
+                for i, message in enumerate(self.selected_messages, 1):
+                    f.write(f"{i:3d}. [{message['timestamp']}] [{message['method']}]\n")
+                    f.write(f"     {message['text']}\n\n")
+            
+            print(f"📌 Selected messages saved to: {selected_filename}")
+            return selected_filename
+        except Exception as e:
+            print(f"Error saving selected messages: {e}")
+            return None
+        
+    def record_key_press(self, event):
+        """Record keyboard input."""
+        if not self.recording:
+            return
+        
+        key_name = event.name
+        
+        # Special combination for capturing selected messages
+        if key_name == 'f2':  # Changed from F1 to F2 to avoid conflicts
+            print(f"🔍 F2 pressed - attempting to capture selected message...")
+            message_info = self.detect_selected_message()
+            if message_info:
+                action = {
+                    'type': 'selected_message',
+                    'timestamp': datetime.now().isoformat(),
+                    'text': message_info['text'],
+                    'detection_method': message_info['method']
+                }
+                self.recorded_actions.append(action)
+                print(f"✅ Successfully recorded selected message action")
+            else:
+                print(f"❌ Could not capture selected message - make sure text is selected first")
+            return
+        
+        # Handle regular key presses
+        if key_name == 'space':
+            self.current_message += ' '
+        elif key_name == 'backspace':
+            if self.current_message:
+                self.current_message = self.current_message[:-1]
+        elif key_name == 'enter':
+            if self.current_message.strip():
+                # Save completed message
+                action = {
+                    'type': 'message',
+                    'timestamp': datetime.now().isoformat(),
+                    'text': self.current_message.strip()
+                }
+                self.recorded_actions.append(action)
+                self.captured_text.append(self.current_message.strip())
+                print(f"💬 Recorded message: {self.current_message.strip()[:50]}...")
+                self.current_message = ""
+        elif len(key_name) == 1 and key_name.isprintable():
+            # Regular character
+            self.current_message += key_name
+        elif key_name in ['shift', 'ctrl', 'alt', 'tab', 'caps lock']:
+            # Ignore modifier keys for message capture
+            pass
+        else:
+            # Record special key as action
+            action = {
+                'type': 'keypress',
+                'timestamp': datetime.now().isoformat(),
+                'key': key_name
+            }
+            self.recorded_actions.append(action)
+            print(f"⌨️  Recorded key: {key_name}")
+    
+    def save_captured_text(self):
+        """Save captured text messages to a file."""
+        if not self.captured_text:
+            return None
+        
+        timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
+        text_filename = f"captured_messages_{timestamp}.txt"
+        
+        try:
+            with open(text_filename, 'w', encoding='utf-8') as f:
+                f.write("WhatsApp Captured Messages\n")
+                f.write("=" * 30 + "\n")
+                f.write(f"Recorded on: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Total messages: {len(self.captured_text)}\n")
+                f.write("=" * 30 + "\n\n")
+                
+                for i, message in enumerate(self.captured_text, 1):
+                    f.write(f"{i:3d}. {message}\n")
+            
+            print(f"📝 Captured text saved to: {text_filename}")
+            return text_filename
+        except Exception as e:
+            print(f"Error saving captured text: {e}")
+            return None
         
     def load_history(self):
         """Load existing recording history."""
@@ -113,12 +276,17 @@ class WhatsAppRecorder:
         print("\n🔴 RECORDING STARTED")
         print("Instructions:")
         print("- Perform your WhatsApp actions (click chats, scroll, etc.)")
+        print("- Type messages (they will be captured when you press Enter)")
+        print("- Select a message and press F2 to capture selected text")
         print("- Press CTRL+R to stop recording")
         print("- Press ESC to cancel recording")
         print("-" * 50)
         
         self.recording = True
         self.recorded_actions = []
+        self.current_message = ""
+        self.captured_text = []
+        self.selected_messages = []
         self.start_time = datetime.now()
         
         # Set up hotkeys
@@ -127,6 +295,12 @@ class WhatsAppRecorder:
         
         # Record mouse clicks
         mouse.on_click(self.record_mouse_click)
+        
+        # Record keyboard presses
+        keyboard.hook(self.record_key_press)
+        
+        print("🎤 Keyboard recording active - type messages and they'll be captured!")
+        print("📌 Press F2 after selecting a message to capture it!")
         
         # Keep recording until stopped
         while self.recording:
@@ -176,14 +350,29 @@ class WhatsAppRecorder:
         mouse.unhook_all()
         keyboard.unhook_all()
         
+        # Save any remaining message being typed
+        if self.current_message.strip():
+            action = {
+                'type': 'message',
+                'timestamp': datetime.now().isoformat(),
+                'text': self.current_message.strip()
+            }
+            self.recorded_actions.append(action)
+            self.captured_text.append(self.current_message.strip())
+            print(f"💬 Saved incomplete message: {self.current_message.strip()}")
+        
         end_time = datetime.now()
         duration = str(end_time - self.start_time).split('.')[0]  # Remove microseconds
         
         print(f"\n🟢 RECORDING STOPPED - {len(self.recorded_actions)} actions recorded")
+        print(f"� Messages typed: {len(self.captured_text)}")
+        print(f"📌 Messages selected: {len(self.selected_messages)}")
         print(f"Recording duration: {duration}")
         
         if self.recorded_actions:
             script_file, data_file = self.generate_script()
+            text_file = self.save_captured_text()
+            selected_file = self.save_selected_messages()
             
             # Create session info for history
             session_info = {
@@ -191,8 +380,12 @@ class WhatsAppRecorder:
                 'end_time': end_time.strftime("%Y-%m-%d %H:%M:%S"),
                 'duration': duration,
                 'action_count': len(self.recorded_actions),
+                'message_count': len(self.captured_text),
+                'selected_count': len(self.selected_messages),
                 'script_file': script_file,
                 'data_file': data_file,
+                'text_file': text_file,
+                'selected_file': selected_file,
                 'actions_summary': [self.get_action_summary(action) for action in self.recorded_actions[:10]]
             }
             
@@ -204,9 +397,31 @@ class WhatsAppRecorder:
             print("📋 SESSION SUMMARY")
             print("=" * 50)
             print(f"Actions recorded: {len(self.recorded_actions)}")
+            print(f"Messages typed: {len(self.captured_text)}")
+            print(f"Messages selected: {len(self.selected_messages)}")
             print(f"Duration: {duration}")
             print(f"Script generated: {script_file}")
             print(f"Data saved: {data_file}")
+            if text_file:
+                print(f"Typed messages saved: {text_file}")
+            if selected_file:
+                print(f"Selected messages saved: {selected_file}")
+                
+            # Show captured messages preview
+            if self.captured_text:
+                print(f"\n💬 Typed messages preview:")
+                for i, msg in enumerate(self.captured_text[:3], 1):
+                    print(f"   {i}. {msg[:60]}{'...' if len(msg) > 60 else ''}")
+                if len(self.captured_text) > 3:
+                    print(f"   ... and {len(self.captured_text) - 3} more typed messages")
+            
+            # Show selected messages preview
+            if self.selected_messages:
+                print(f"\n📌 Selected messages preview:")
+                for i, msg in enumerate(self.selected_messages[:3], 1):
+                    print(f"   {i}. {msg['text'][:60]}{'...' if len(msg['text']) > 60 else ''}")
+                if len(self.selected_messages) > 3:
+                    print(f"   ... and {len(self.selected_messages) - 3} more selected messages")
         else:
             print("No actions were recorded.")
     
@@ -218,6 +433,14 @@ class WhatsAppRecorder:
                 return f"Click on: {element_name}"
             else:
                 return f"Click at ({action['position']['x']}, {action['position']['y']})"
+        elif action['type'] == 'message':
+            message_preview = action['text'][:50] + ('...' if len(action['text']) > 50 else '')
+            return f"Typed: {message_preview}"
+        elif action['type'] == 'selected_message':
+            message_preview = action['text'][:50] + ('...' if len(action['text']) > 50 else '')
+            return f"Selected: {message_preview}"
+        elif action['type'] == 'keypress':
+            return f"Key press: {action['key']}"
         return f"Unknown action: {action['type']}"
     
     def cancel_recording(self):
@@ -286,6 +509,12 @@ class WhatsAppRecorder:
         for i, action in enumerate(self.recorded_actions):
             if action['type'] == 'click':
                 script_lines.extend(self.generate_click_code(action, i))
+            elif action['type'] == 'message':
+                script_lines.extend(self.generate_message_code(action, i))
+            elif action['type'] == 'selected_message':
+                script_lines.extend(self.generate_selected_message_code(action, i))
+            elif action['type'] == 'keypress':
+                script_lines.extend(self.generate_keypress_code(action, i))
         
         script_lines.extend([
             "",
@@ -330,6 +559,63 @@ class WhatsAppRecorder:
                 f"    time.sleep(1)  # Wait between actions"
             ])
         
+        return lines
+    
+    def generate_message_code(self, action, index):
+        """Generate Python code for typing a message."""
+        message = action['text'].replace("'", "\\'")  # Escape single quotes
+        lines = [
+            f"",
+            f"    # Action {index + 1}: Type message recorded at {action['timestamp']}",
+            f"    try:",
+            f"        # Find the message input box and type the message",
+            f"        input_box = main_win.child_window(control_type='Edit')",
+            f"        input_box.click_input()",
+            f"        input_box.type_keys('{message}')",
+            f"        print('✓ Typed message: {message[:50]}{'...' if len(message) > 50 else ''}')",
+            f"    except Exception as e:",
+            f"        print(f'✗ Could not type message: {{e}}')",
+            f"    time.sleep(1)  # Wait between actions"
+        ]
+        return lines
+    
+    def generate_keypress_code(self, action, index):
+        """Generate Python code for a key press."""
+        key = action['key']
+        lines = [
+            f"",
+            f"    # Action {index + 1}: Key press '{key}' recorded at {action['timestamp']}",
+            f"    try:",
+            f"        # Send key press to the active window",
+            f"        main_win.type_keys('{{{key.upper()}}}')",
+            f"        print('✓ Pressed key: {key}')",
+            f"    except Exception as e:",
+            f"        print(f'✗ Could not press key {key}: {{e}}')",
+            f"    time.sleep(0.5)  # Wait between key presses"
+        ]
+        return lines
+    
+    def generate_selected_message_code(self, action, index):
+        """Generate Python code for capturing selected message."""
+        expected_text = action['text'][:30].replace("'", "\\'")  # Truncate and escape
+        lines = [
+            f"",
+            f"    # Action {index + 1}: Capture selected message recorded at {action['timestamp']}",
+            f"    try:",
+            f"        # Method 1: Try to get selected text via clipboard",
+            f"        import pyperclip",
+            f"        main_win.type_keys('^c')  # Ctrl+C to copy",
+            f"        time.sleep(0.2)",
+            f"        selected_text = pyperclip.paste()",
+            f"        if selected_text and '{expected_text}' in selected_text:",
+            f"            print(f'✓ Captured selected message: {{selected_text[:50]}}...')",
+            f"            # Save to file or process as needed",
+            f"        else:",
+            f"            print('⚠️  Selected text may have changed')",
+            f"    except Exception as e:",
+            f"        print(f'✗ Could not capture selected message: {{e}}')",
+            f"    time.sleep(1)  # Wait between actions"
+        ]
         return lines
 
 def manual_inspector():

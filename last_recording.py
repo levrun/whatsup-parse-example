@@ -33,8 +33,14 @@ def show_last_recording():
         print(f"📅 Date: {last_session['timestamp']}")
         print(f"⏱️  Duration: {last_session.get('duration', 'Unknown')}")
         print(f"🎯 Actions recorded: {last_session['action_count']}")
-        print(f"📝 Script file: {last_session['script_file']}")
+        print(f"💬 Messages typed: {last_session.get('message_count', 0)}")
+        print(f"� Messages selected: {last_session.get('selected_count', 0)}")
+        print(f"�📝 Script file: {last_session['script_file']}")
         print(f"💾 Data file: {last_session['data_file']}")
+        if last_session.get('text_file'):
+            print(f"📄 Typed messages file: {last_session['text_file']}")
+        if last_session.get('selected_file'):
+            print(f"🗂️  Selected messages file: {last_session['selected_file']}")
         
         if last_session.get('actions_summary'):
             print(f"\n🎭 Actions performed:")
@@ -59,8 +65,20 @@ def show_last_recording():
         else:
             print(f"   ❌ Data file missing: {last_session['data_file']}")
         
+        if last_session.get('selected_file'):
+            if os.path.exists(last_session['selected_file']):
+                print(f"   ✅ Selected messages file exists: {last_session['selected_file']}")
+            else:
+                print(f"   ❌ Selected messages file missing: {last_session['selected_file']}")
+        
         print(f"\n💡 To run the recorded script:")
         print(f"   python {last_session['script_file']}")
+        if last_session.get('text_file'):
+            print(f"\n💡 To view typed messages:")
+            print(f"   notepad {last_session['text_file']}")
+        if last_session.get('selected_file'):
+            print(f"\n💡 To view selected messages:")
+            print(f"   notepad {last_session['selected_file']}")
         print(f"\n💡 To start a new recording:")
         print(f"   python whatsapp_recorder.py")
         
@@ -93,7 +111,9 @@ def show_quick_history():
         recent_sessions = history[-5:] if len(history) >= 5 else history
         
         for i, session in enumerate(reversed(recent_sessions), 1):
-            print(f"{i:2d}. {session['timestamp']} | {session['action_count']} actions | {session.get('duration', '?')}")
+            msg_count = session.get('message_count', 0)
+            msg_info = f" | {msg_count} msgs" if msg_count > 0 else ""
+            print(f"{i:2d}. {session['timestamp']} | {session['action_count']} actions{msg_info} | {session.get('duration', '?')}")
             if session.get('actions_summary') and session['actions_summary']:
                 preview = session['actions_summary'][0][:50]
                 print(f"    First action: {preview}...")

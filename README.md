@@ -67,8 +67,11 @@ python whatsapp_recorder.py
 
 This tool offers:
 - **Real-time recording**: Records your mouse clicks and generates Python code
+- **Keyboard capture**: Records typed messages and key presses
+- **Message selection**: Capture selected WhatsApp messages (press F1)
 - **UI element detection**: Automatically identifies clicked elements
 - **Script generation**: Creates ready-to-run automation scripts
+- **Message extraction**: Saves typed text to separate .txt files
 - **Manual inspector**: Explore WhatsApp UI elements interactively
 
 ### Method 2: Code Generator & Inspector
@@ -91,9 +94,11 @@ python -c "from pywinauto import inspect; inspect.main()"
 ### Recording Workflow:
 1. **Start recording**: Run `python whatsapp_recorder.py` and choose option 1
 2. **Perform actions**: Click on chats, scroll through messages, etc.
-3. **Stop recording**: Press `Ctrl+R` to generate the automation script
-4. **Review & customize**: Edit the generated script for your needs
-5. **Test automation**: Run your generated script
+3. **Type messages**: Any text you type will be captured (saved when you press Enter)
+4. **Select messages**: Highlight any existing message and press **F1** to capture it
+5. **Stop recording**: Press `Ctrl+R` to generate the automation script
+6. **Review & customize**: Edit the generated script for your needs
+7. **Test automation**: Run your generated script
 
 ### Recording History & Tracking:
 The recorder now maintains a history of all your recording sessions:
@@ -112,14 +117,18 @@ python whatsapp_recorder.py
 
 **History features:**
 - 📝 **Session tracking**: Date, duration, action count for each recording
+- 💬 **Message counting**: Tracks how many text messages were captured
+- 📌 **Selection counting**: Tracks how many messages were selected with F1
 - 🎯 **Action summaries**: Preview of what actions were recorded
-- 📁 **File tracking**: Links to generated script and data files
+- 📁 **File tracking**: Links to generated script, data, and message files
 - 📊 **Quick access**: View last recording without opening the full recorder
 - 🗂️ **Persistent storage**: History saved in `recording_history.json`
 
 The recorder will create files like:
 - `recorded_whatsapp_script_YYYYMMDD_HHMMSS.py` - Executable automation script
 - `recorded_actions_YYYYMMDD_HHMMSS.json` - Raw recording data for debugging
+- `captured_messages_YYYYMMDD_HHMMSS.txt` - Text messages typed during recording
+- `selected_messages_YYYYMMDD_HHMMSS.txt` - Messages selected with F1 key
 - `recording_history.json` - History of all recording sessions
 
 ## How to Run Pywinauto
